@@ -12,8 +12,14 @@ setup(
         ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob('launch/*launch.py')),
+        (os.path.join('share', package_name, 'srv'), glob('srv/*.srv')),
     ],
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'requests'],
+    entry_points={
+        'console_scripts': [
+            'parse_command_node = tb4_gz_rqt_launch.command_parser_node:main',
+        ],
+    },
     zip_safe=False,
     maintainer='Your Name',
     maintainer_email='you@example.com',

@@ -1,0 +1,8 @@
+# Request
+string command_text
+---
+# Response
+string target_object
+string relation_label
+string reference_object
+bool success

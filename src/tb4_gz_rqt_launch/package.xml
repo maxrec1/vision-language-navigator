@@ -8,6 +8,8 @@
 
   <buildtool_depend>ament_python</buildtool_depend>
 
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>tb4_interfaces</exec_depend>
   <exec_depend>rqt_image_view</exec_depend>
   <exec_depend>turtlebot4_gz_bringup</exec_depend>
   <exec_depend>launch</exec_depend>
