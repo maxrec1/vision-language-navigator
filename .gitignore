@@ -1,0 +1,37 @@
+# Ollama models (don't push ~2.2 GB files)
+*.gguf
+*.bin
+ollama/
+models/
+
+# Python/ROS
+__pycache__/
+*.pyc
+*.pyo
+dist/
+build/
+*.egg-info/
+*.so
+
+# Gazebo/ROS sim files
+.gazebo/
+.ros/
+log/
+install/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+/tmp/
+*.temp
+*.log

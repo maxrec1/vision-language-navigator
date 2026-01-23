@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>tb4_gz_rqt_launch</name>
+  <version>0.0.0</version>
+  <description>Launch TurtleBot4 in Gazebo and start rqt_image_view</description>
+  <maintainer email="you@example.com">Your Name</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <exec_depend>rqt_image_view</exec_depend>
+  <exec_depend>turtlebot4_gz_bringup</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
