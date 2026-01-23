@@ -34,8 +34,6 @@ ROS 2 + TurtleBot4 + Phi-3 LLM-based navigation system for converting natural la
      ```bash
    python3 src/tb4_gz_rqt_launch/ollama_test.py   # might take some time to run
     ```
-   # might take some time to run
-
 
 4. **Build ROS 2 workspace**
    ```bash
