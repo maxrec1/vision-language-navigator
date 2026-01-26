@@ -44,8 +44,9 @@ source install/setup.bash
 
 ### 1. Launch TurtleBot4 Simulator
 **Terminal 1: Launch Gazebo**
+```bash
 ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py 
-
+```
 ### 2. Run Interactive Command Parser
 
 **Terminal 2: Start Command Parser - Send target**
@@ -56,11 +57,13 @@ source install/setup.bash
 ros2 run tb4_gz_rqt_launch parse_command_node
 ```
 **Terminal 3: Run Object Detection Node**
+```bash
 ros2 run tb4_gz_rqt_launch vision_detector_node
-
+```
 **Terminal 4: Visualize Object Detection in Live Camera Feed**
+```bash
  ros2 run rqt_image_view rqt_image_view /vision/detections
-
+```
 ## Command Parser Details
 
 ### How It Works
