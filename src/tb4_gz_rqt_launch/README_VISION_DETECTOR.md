@@ -19,8 +19,8 @@ YOLOWorld-based real-time object detection for TurtleBot4.
 # Install Python packages
 pip3 install ultralytics opencv-python torch torchvision --break-system-packages
 
-# Install ROS 2 cv-bridge (replace 'jazzy' with your ROS 2 distro if different)
-sudo apt install ros-${ROS_DISTRO}-cv-bridge python3-cv-bridge
+# Install ROS 2 cv-bridge 
+sudo apt install ros-jazzy-cv-bridge python3-cv-bridge
 ```
 
 ### 2. Build the Package
