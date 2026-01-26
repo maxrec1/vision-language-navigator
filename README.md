@@ -14,7 +14,8 @@ ROS 2 + TurtleBot4 + Phi-3 LLM-based navigation system for converting natural la
 
 ### System Dependencies
 
-```bash# Install ROS 2 packages (replace <distro> with jazzy)
+```bash
+# Install ROS 2 packages (replace <distro> with jazzy)
 sudo apt update && sudo apt install \
   ros-jazzy-rqt-image-view \
   ros-jazzy-turtlebot4-gz-bringup
