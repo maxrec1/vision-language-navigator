@@ -10,224 +10,96 @@ ROS 2 + TurtleBot4 + Phi-3 LLM-based navigation system for converting natural la
 - **TurtleBot4 Gazebo simulator** packages
 - Python 3.10+
 
-### Installation
+## Installation
 
-1. **Clone repository**
-   ```bash
-   # Clone to your preferred workspace location
-   git clone https://github.com/maxrec1/vision-language-navigator.git
-   cd vision-language-navigator
-   ```
+### System Dependencies
 
-2. **Install Ollama + Phi-3**
-   ```bash
-   # See docs/PHASE1_SETUP.md for detailed instructions
-   curl -fsSL https://ollama.ai/install.sh | sh
-   ollama pull phi3
-   ```
+```bash# Install ROS 2 packages (replace <distro> with jazzy)
+sudo apt update && sudo apt install \
+  ros-jazzy-rqt-image-view \
+  ros-jazzy-turtlebot4-gz-bringup
 
-3. **Install Python dependencies**
-   ```bash
-   pip install requests --break-system-packages
-   ```
 
-4. **Test Command parser**
-   ```bash
-   # From workspace root
-   python3 src/tb4_gz_rqt_launch/ollama_test.py   # might take some time
-   ```
+# Install Ollama
+curl -fsSL https://ollama.ai/install.sh | sh
 
-5. **Build ROS 2 workspace**
-   ```bash
-   colcon build
-   source install/setup.bash
-   ```
+# Pull Phi-3 model
+ollama pull phi3
 
-6. **Run simulator + command parser**
-   ```bash
-   # Launch TurtleBot4 simulator + command parser
-   ros2 launch tb4_gz_rqt_launch tb4_gz_rqt_launch.launch.py
-   ```
-
-## 📋 Project Structure
-
-```
-vision-language-navigator/
-├── README.md                          ← You are here
-├── .gitignore                         ← Git ignore rules
-├── docs/
-│   └── PHASE1_SETUP.md               ← Installation & setup guide
-├── src/tb4_gz_rqt_launch/
-│   ├── README_COMMAND_PARSER.md       ← Command parser API reference
-│   ├── ollama_test.py                 ← Test script (standalone)
-│   ├── command_parser_node.py         ← ROS 2 service node (Phase 2)
-│   ├── package.xml
-│   ├── setup.py
-│   └── tb4_gz_rqt_launch/
-│       ├── __init__.py
-│       └── ... (other modules)
-├── launch/
-│   ├── tb4_gz_rqt_launch.launch.py    ← Main launch file
-│   └── command_parser.launch.py       ← Parser node launcher (Phase 2)
-└── README.md (this file)
-```
-
-## 🧠 How It Works
-
-### Phase 1: LLM Command Parser ✅
-Extracts structured navigation goals from natural language using **Phi-3** running locally via **Ollama**.
-
-**Input**: `"go to the chair"`  
-**Output**: `{"target": "chair", "relation": null, "reference": null}`
-
-**Features:**
-- Runs locally (privacy-preserving)
-- GPU-accelerated inference
-- Robust JSON extraction (handles markdown wrapping)
-- Few-shot prompting for reliable output
-
-### Phase 2: ROS 2 Service Integration (In Progress)
-Wraps Phase 1 in a ROS 2 service node for TurtleBot4 integration.
-
-**Service**: `/parse_command` (ParseCommand.srv)  
-**Interface**: Converts natural language → structured navigation goals
-
-### Phase 3: Navigation Stack (Planned)
-Integrates with TurtleBot4 navigation stack and YOLO object detection.
-
-## 📖 Documentation
-
-- **[Phase 1 Setup Guide](docs/PHASE1_SETUP.md)** — How to install Ollama + Phi-3 + test the parser
-- **[Command Parser Module](src/tb4_gz_rqt_launch/README_COMMAND_PARSER.md)** — API reference & usage examples
-
-## 🧪 Testing
-
-### Run Phase 1 Test (Standalone)
-```bash
-python3 src/tb4_gz_rqt_launch/ollama_test.py
-```
-
-**Output:**
-```
-============================================================
-OLLAMA + PHI-3 COMMAND PARSER TEST
-============================================================
-
-[1] Input: 'Go to the chair'
-    Output: {
-      "target": "chair",
-      "relation": null,
-      "reference": null
-    }
-
-[2] Input: 'Find the table near the window'
-    Output: {
-      "target": "table",
-      "relation": "near",
-      "reference": "window"
-    }
-
-...
-
-[6] INTERACTIVE MODE - Enter your own command
-🤖 Enter a navigation command (or press Enter to skip):
-```
-
-### Check Ollama Status
-```bash
-curl http://localhost:11434/api/tags
-ollama list
-```
-
-## 🔧 Configuration
-
-### Ollama Settings
-- **Model**: Phi-3 (3.8B parameters, 2.2 GB)
-- **API Endpoint**: `http://localhost:11434/api/generate`
-- **Inference Timeout**: 120 seconds
-
-### System Prompt
-The parser uses a few-shot prompting strategy to force strict JSON output. See [docs/PHASE1_SETUP.md](docs/PHASE1_SETUP.md#system-prompt-strategy) for details.
-
-## 📊 Performance
-
-| Metric | Value |
-|--------|-------|
-| Model | Phi-3 (3.8B) |
-| Inference Time | ~60-80s per command (GPU) |
-| Accuracy | High for navigation commands |
-| JSON Parsing Success | >95% |
-| Latency Type | Offline planning (not real-time) |
-
-## ⚠️ Troubleshooting
-
-### Ollama connection failed
-```bash
-# Make sure Ollama service is running
-sudo systemctl start ollama
-# or
-ollama serve
-```
-
-### Import error: `requests` not found
-```bash
+# Install Python dependencies
 pip install requests --break-system-packages
 ```
 
-### Slow inference
-- Check GPU availability: `nvidia-smi`
-- Consider lighter model (Llama 2 7B) if needed
-- Monitor memory usage: `watch nvidia-smi`
+### Build Package
 
-### JSON parsing errors
-- Re-run the test (LLMs are non-deterministic)
-- Check Ollama logs: `journalctl -u ollama -f`
-- See [docs/PHASE1_SETUP.md#troubleshooting](docs/PHASE1_SETUP.md#troubleshooting)
+```bash
+# Navigate to your workspace root
+cd cd ~/vision-language-navigator  # Replace with your actual workspace path
+colcon build --packages-select tb4_interfaces tb4_gz_rqt_launch
+source install/setup.bash
+```
 
-## 📝 Project Phases
+## Usage
 
-### ✅ Phase 1: LLM Command Parser
-- Install Ollama + Phi-3 ✅
-- Implement JSON extraction ✅
-- Test parser locally ✅
-- Document API ✅
+### 1. Launch TurtleBot4 Simulator
+**Terminal 1: Launch Gazebo**
+ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py 
 
-### 🔄 Phase 2: ROS 2 Service Integration
-- Create `.srv` interface (ParseCommand)
-- Implement service node
-- Launch file integration
-- ROS CLI testing
+### 2. Run Interactive Command Parser
 
-### 📅 Phase 3: Navigation Stack
-- Integrate with TurtleBot4 move_base
-- Add YOLO object detection
-- Handle multi-step navigation
-- Real-time visualization
+**Terminal 2: Start Command Parser - Send target**
+```bash
+# From your workspace root
+colcon build --packages-select tb4_interfaces tb4_gz_rqt_launch
+source install/setup.bash
+ros2 run tb4_gz_rqt_launch parse_command_node
+```
+**Terminal 3: Run Object Detection Node**
+ros2 run tb4_gz_rqt_launch vision_detector_node
 
-## 🤝 Contributing
+**Terminal 4: Visualize Object Detection in Live Camera Feed**
+ ros2 run rqt_image_view rqt_image_view /vision/detections
 
-1. Fork the repo
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+## Command Parser Details
 
-## 📄 License
+### How It Works
 
-This project is licensed under the **MIT License** — see LICENSE file for details.
+1. **Input**: Natural language command (e.g., "go to the chair")
+2. **Processing**: Phi-3 LLM extracts structured navigation goal via Ollama API
+3. **Output**: JSON with `target`, `relation`, and `reference` fields
 
-## 👤 Author
 
-**maxrec** — ROS 2 + Vision Language Navigation Research
+| Issue | Solution |
+|-------|----------|
+| `No executable found: parse_command_node` | Rebuild: `colcon build --packages-select tb4_gz_rqt_launch` |
+| `Connection refused` (Ollama) | Start Ollama: `ollama serve` |
+| `ModuleNotFoundError: requests` | `pip install requests --break-system-packages` |
+| Slow inference (60+ seconds) | Normal for Phi-3 on first request; subsequent requests are faster |
+| `ModuleNotFoundError: tb4_interfaces` | Build interfaces: `colcon build --packages-select tb4_interfaces` |
+| Stop Phi-3 model running in background | `sudo killall ollama` |
 
-## 🙏 Acknowledgments
+## Documentation
 
-- Phi-3 by Microsoft
-- Ollama for local LLM inference
-- TurtleBot4 by Clearpath Robotics
-- ROS 2 Community
+- **[README_COMMAND_PARSER.md](README_COMMAND_PARSER.md)** - Detailed API reference for command parser module
+- **[ollama_test.py](ollama_test.py)** - Standalone test script for Phi-3 JSON extraction
 
----
+## Project Structure
 
-**Last Updated**: January 23, 2026  
-**Status**: Phase 1 Complete, Phase 2 In Progress
+```
+tb4_gz_rqt_launch/
+├── launch/
+│   └── tb4_gz_rqt_launch.launch.py    # Main launch file
+├── tb4_gz_rqt_launch/
+│   ├── __init__.py
+│   ├── command_parser_node.py          # Interactive command parser (ROS 2 node)
+│   └── ollama_test.py                  # LLM parsing logic (Phi-3 via Ollama)
+├── package.xml
+├── setup.py
+└── README.md                           # This file
+```
+
+## See Also
+
+- [Main Project README](../../README.md) - Full project overview
+- [Phase 1 Setup Guide](../../docs/PHASE1_SETUP.md) - Ollama + Phi-3 installation
+
