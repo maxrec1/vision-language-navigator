@@ -10,6 +10,8 @@ from .ollama_test import parse_command
 import logging
 import threading
 from std_msgs.msg import String
+import sys
+from rcl_interfaces.msg import ParameterValue
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -43,19 +45,22 @@ class CommandParserNode(Node):
             
             while not self._stop_event.is_set():
                 try:
-                    print('Enter a navigation command (or press Enter to skip): ')
-                    command_text = input('>> ')
+                    print("\nEnter a navigation command (or press Enter to skip):")
+                    print(">> ", end="", flush=True)  # Add flush=True to ensure prompt prints immediately
+                    sys.stdout.flush()
                 except (EOFError, KeyboardInterrupt):
                     print('\nInterrupted by user.\n')
                     break
 
-                if command_text.strip() == '':
+                user_command = input()
+
+                if user_command.strip() == '':
                     print('\nInterrupted by user.\n')
                     break
 
                 # Parse command and publish only the target
                 try:
-                    result = parse_command(command_text)
+                    result = parse_command(user_command)
                     target = (result or {}).get('target', '') or ''
                     relation = (result or {}).get('relation') or ''
                     reference = (result or {}).get('reference') or ''
@@ -92,6 +97,9 @@ class CommandParserNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = CommandParserNode()
+    
+    # Suppress INFO logs during interactive mode
+    node.declare_parameter('log_level', rclpy.logging.LoggingSeverity.WARN)
     
     try:
         rclpy.spin(node)

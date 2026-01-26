@@ -318,6 +318,20 @@ class VisionDetectorNode(Node):
                     if is_target and depth is not None:
                         point_cam = self.compute_3d_position(bbox, depth)
                         if point_cam is not None:
+                            # Get camera frame coordinates
+                            x_cam = point_cam.point.x
+                            y_cam = point_cam.point.y
+                            z_cam = point_cam.point.z
+                            distance = np.sqrt(x_cam**2 + y_cam**2 + z_cam**2)
+                            
+                            # Log camera frame position and distance
+                            self.get_logger().info(
+                                f"⬤ Target \"{self.target_object}\" detected:\n"
+                                f"   ⬤ Camera coords: X={x_cam:.3f}m, Y={y_cam:.3f}m, Z={z_cam:.3f}m\n"
+                                f"   ⬤ Distance: {distance:.3f}m from camera"
+                            )
+                            
+                            # Try to transform to map frame
                             point_map = self.transform_to_map(point_cam)
                             if point_map is not None:
                                 # Create PoseStamped message

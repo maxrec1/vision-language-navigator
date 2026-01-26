@@ -14,8 +14,8 @@ ROS 2 package for TurtleBot4 Gazebo simulation with LLM-based natural language c
 
 ```bash# Install ROS 2 packages (replace <distro> with jazzy)
 sudo apt update && sudo apt install \
-  ros-<distro>-rqt-image-view \
-  ros-<distro>-turtlebot4-gz-bringup
+  ros-jazzy-rqt-image-view \
+  ros-jazzy-turtlebot4-gz-bringup
 
 
 # Install Ollama
@@ -32,7 +32,7 @@ pip install requests --break-system-packages
 
 ```bash
 # Navigate to your workspace root
-cd /path/to/your/workspace  # Replace with your actual workspace path
+cd cd ~/vision-language-navigator  # Replace with your actual workspace path
 colcon build --packages-select tb4_interfaces tb4_gz_rqt_launch
 source install/setup.bash
 ```
@@ -41,24 +41,22 @@ source install/setup.bash
 
 ### 1. Launch TurtleBot4 Simulator
 **Terminal 1: Launch Gazebo**
-ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py
+ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py 
 
 ### 2. Run Interactive Command Parser
 
-**Terminal 2: Start Ollama**
-
-```bash
-ollama run phi3
-```
-
-**Terminal 3: Start Command Parser**
+**Terminal 2: Start Command Parser - Send target**
 ```bash
 # From your workspace root
 colcon build --packages-select tb4_interfaces tb4_gz_rqt_launch
 source install/setup.bash
 ros2 run tb4_gz_rqt_launch parse_command_node
 ```
+**Terminal 3: Run Object Detection Node**
+ros2 run tb4_gz_rqt_launch vision_detector_node
 
+**Terminal 4: Visualize Object Detection in Live Camera Feed**
+ ros2 run rqt_image_view rqt_image_view /vision/detections
 
 ## Command Parser Details
 
