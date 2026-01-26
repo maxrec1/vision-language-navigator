@@ -5,7 +5,7 @@ ROS 2 + TurtleBot4 + Phi-3 LLM-based navigation system for converting natural la
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **ROS 2 Jazzy** installed
+- **ROS 2** (Humble, Iron, Jazzy, or later)
 - **Ollama** (local LLM runner)
 - **TurtleBot4 Gazebo simulator** packages
 - Python 3.10+
@@ -14,6 +14,7 @@ ROS 2 + TurtleBot4 + Phi-3 LLM-based navigation system for converting natural la
 
 1. **Clone repository**
    ```bash
+   # Clone to your preferred workspace location
    git clone https://github.com/maxrec1/vision-language-navigator.git
    cd vision-language-navigator
    ```
@@ -30,18 +31,19 @@ ROS 2 + TurtleBot4 + Phi-3 LLM-based navigation system for converting natural la
    pip install requests --break-system-packages
    ```
 
-    **Test Command parser**
-     ```bash
-   python3 src/tb4_gz_rqt_launch/ollama_test.py   # might take some time to run
-    ```
+4. **Test Command parser**
+   ```bash
+   # From workspace root
+   python3 src/tb4_gz_rqt_launch/ollama_test.py   # might take some time
+   ```
 
-4. **Build ROS 2 workspace**
+5. **Build ROS 2 workspace**
    ```bash
    colcon build
    source install/setup.bash
    ```
 
-5. **Run simulator + command parser**
+6. **Run simulator + command parser**
    ```bash
    # Launch TurtleBot4 simulator + command parser
    ros2 launch tb4_gz_rqt_launch tb4_gz_rqt_launch.launch.py

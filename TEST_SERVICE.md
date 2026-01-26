@@ -12,14 +12,16 @@ This guide shows how to test the `/parse_command` service with user input.
 
 2. **ROS 2 packages built**:
    ```bash
-   cd ~/ros2_jazzy/vision-language-navigator
+   # Navigate to your workspace root
+   cd /path/to/your/workspace
    colcon build
    ```
 
 ### Run Interactive Test
 
 ```bash
-cd ~/ros2_jazzy/vision-language-navigator
+# From your workspace root
+cd /path/to/your/workspace
 python3 test_parse_service.py
 ```
 
@@ -72,17 +74,17 @@ ollama serve
 
 ### Terminal 2: Start the service node
 ```bash
-cd ~/ros2_jazzy/vision-language-navigator
+# From your workspace root
+cd /path/to/your/workspace
 source install/setup.bash
-source /opt/ros/jazzy/setup.bash
 parse_command_node
 ```
 
 ### Terminal 3: Call the service
 ```bash
-cd ~/ros2_jazzy/vision-language-navigator
+# From your workspace root
+cd /path/to/your/workspace
 source install/setup.bash
-source /opt/ros/jazzy/setup.bash
 
 # Test with different commands
 ros2 service call /parse_command tb4_interfaces/srv/ParseCommand "{command_text: 'go to the chair'}"

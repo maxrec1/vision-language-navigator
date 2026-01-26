@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 from glob import glob
 
@@ -14,10 +14,12 @@ setup(
         (os.path.join('share', package_name, 'launch'), glob('launch/*launch.py')),
         (os.path.join('share', package_name, 'srv'), glob('srv/*.srv')),
     ],
-    install_requires=['setuptools', 'requests'],
+    install_requires=['setuptools', 'requests', 'opencv-python', 'ultralytics', 'cv-bridge'],
     entry_points={
         'console_scripts': [
             'parse_command_node = tb4_gz_rqt_launch.command_parser_node:main',
+            'vision_detector_node = tb4_gz_rqt_launch.vision_detector_node:main',
+            'test_vision_detector = tb4_gz_rqt_launch.test_vision_detector:main',
         ],
     },
     zip_safe=False,
