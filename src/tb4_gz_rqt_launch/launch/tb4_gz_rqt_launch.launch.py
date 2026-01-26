@@ -19,13 +19,20 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(tb4_launch),
     )
 
-    # Start rqt_image_view as a separate process so it opens the GUI
-    rqt = ExecuteProcess(
-        cmd=['ros2', 'run', 'rqt_image_view', 'rqt_image_view'],
+    # Start vision detector node
+    vision_detector = ExecuteProcess(
+        cmd=['ros2', 'run', 'tb4_gz_rqt_launch', 'vision_detector_node'],
+        output='screen',
+    )
+
+    # Start rqt_image_view for vision detections
+    rqt_vision = ExecuteProcess(
+        cmd=['ros2', 'run', 'rqt_image_view', 'rqt_image_view', '/vision/detections'],
         output='screen',
     )
 
     return LaunchDescription([
         include_tb4,
-        rqt,
+        vision_detector,
+        rqt_vision,
     ])

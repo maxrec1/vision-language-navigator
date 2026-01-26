@@ -1,8 +1,10 @@
-# Vision Detector Node - Block 1
+# Vision Detector Node
 
-YOLOWorld-based real-time object detection for TurtleBot4.
+YOLOWorld-based real-time object detection for TurtleBot4 with 3D localization.
 
-## Features (Block 1)
+## Features
+
+### Block 1: 2D Object Detection ✅
 
 ✅ Subscribe to camera feed (`/oakd/rgb/preview/image_raw`)  
 ✅ Accept target object commands via `/detection_target` topic  
@@ -10,6 +12,15 @@ YOLOWorld-based real-time object detection for TurtleBot4.
 ✅ Draw bounding boxes (GREEN for target, ORANGE for others)  
 ✅ Publish annotated images to `/vision/detections`  
 ✅ Skip frames if inference is slow  
+
+### Block 2: 3D Localization ✅
+
+✅ Synchronized RGB + Depth camera subscription  
+✅ Camera intrinsics handling (fx, fy, cx, cy)  
+✅ 3D point computation using pinhole camera model  
+✅ TF2 coordinate transformation (camera → map/odom)  
+✅ Publish object poses to `/vision/object_pose` (geometry_msgs/PoseStamped)  
+✅ Real-time 3D position logging  
 
 ## Installation
 
@@ -71,33 +82,39 @@ ros2 topic pub /detection_target std_msgs/String '{data: "chair"}' --once
 ros2 run tb4_gz_rqt_launch test_vision_detector chair
 ```
 
-### Step 4: View Detections
+### Step 4: View Detections & 3D Poses
 
 ```bash
+# Terminal 4: View annotated images
 ros2 run rqt_image_view rqt_image_view /vision/detections
+
+# Terminal 5: Monitor 3D object poses (Block 2)
+ros2 topic echo /vision/object_pose
 ```
 
-## Testing the Success Criteria
-
-1. **Launch everything** (Gazebo + Vision Detector + Image Viewer)
-2. **Set target**: `ros2 topic pub /detection_target std_msgs/String '{data: "chair"}' --once`
-3. **Drive the robot** manually in front of a chair using teleop:
-   ```bash
-   ros2 run teleop_twist_keyboard teleop_twist_keyboard
-   ```
-4. **Verify**:
-   - Green bounding box appears around the chair
-   - Label shows "TARGET: chair 0.85"
-   - Top-left corner shows "Looking for: chair"
-   - Other objects have orange boxes
+**Expected pose output:**
+```yaml
+header:
+  frame_id: map
+pose:
+  position:
+    x: 2.45
+    y: -0.83
+    z: 0.52
+  orientation:
+    w: 1.0
+```
 
 ## Topics
 
 | Topic | Type | Description |
 |-------|------|-------------|
 | `/detection_target` | `std_msgs/String` | Input: Set the target object to detect |
-| `/oakd/rgb/preview/image_raw` | `sensor_msgs/Image` | Input: Camera feed from TurtleBot4 |
+| `/oakd/rgb/preview/image_raw` | `sensor_msgs/Image` | Input: RGB camera feed from TurtleBot4 |
+| `/oakd/rgb/preview/depth` | `sensor_msgs/Image` | Input: Depth camera feed (Block 2) |
+| `/oakd/rgb/preview/camera_info` | `sensor_msgs/CameraInfo` | Input: Camera intrinsics (Block 2) |
 | `/vision/detections` | `sensor_msgs/Image` | Output: Annotated image with bounding boxes |
+| `/vision/object_pose` | `geometry_msgs/PoseStamped` | Output: 3D pose of target object in map frame (Block 2) |
 
 ## Troubleshooting
 
@@ -122,18 +139,27 @@ First run will download the model (~140MB for yolov8l-worldv2.pt). Be patient.
 - Lower confidence: `-p conf_threshold:=0.3`
 - Check if object is in default class list (edit node to add more classes)
 
-## Next Steps (Block 2)
+### Block 2 Troubleshooting
 
-- [ ] Add depth camera synchronization
-- [ ] Calculate 3D position of detected objects
-- [ ] Integrate with ollama command parser
-- [ ] Create navigation service based on detections
+See **[BLOCK2_TESTING.md](BLOCK2_TESTING.md)** for detailed Block 2 troubleshooting including:
+- TF frame mismatches
+- Invalid depth values
+- Camera intrinsics issues
+- Depth encoding problems
+
+## Next Steps (Block 3)
+
+- [ ] Create Nav2 action client for `/navigate_to_pose`
+- [ ] Integrate with ollama command parser for natural language goals
+- [ ] Handle multi-step navigation sequences
+- [ ] Add visual servoing for fine positioning
 
 ## Architecture
 
+### Block 1: 2D Detection
 ```
 ┌─────────────────┐
-│  TurtleBot4 Cam │
+│  TurtleBot4 RGB │
 │  /oakd/rgb/...  │
 └────────┬────────┘
          │
@@ -146,6 +172,34 @@ First run will download the model (~140MB for yolov8l-worldv2.pt). Be patient.
 │  - Draw bounding boxes      │
 │  - Publish annotated frame  │
 └────────┬────────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│  /vision/       │
+│  detections     │
+│  (Image)        │
+└─────────────────┘
+```
+
+### Block 2: 3D Localization
+```
+TurtleBot4 OAK-D Camera:
+  ├─ RGB Image ────────────┐
+  ├─ Depth Image ──────────┤
+  └─ Camera Info ──────────┤
+                           ├→ vision_detector_node:
+TF2 Transform Listener ────┤    - Sync RGB + Depth
+                           │    - Run YOLO on RGB
+                           │    - Get depth at bbox center
+                           │    - Project to 3D camera frame
+                           │    - Transform to map frame
+                           ↓
+                     3D Object Pose
+                     (x, y, z in map)
+                           ↓
+                     /vision/object_pose
+                     (PoseStamped)
+```
          │
          ▼
 ┌─────────────────┐

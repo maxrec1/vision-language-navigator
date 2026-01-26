@@ -12,11 +12,11 @@ ROS 2 package for TurtleBot4 Gazebo simulation with LLM-based natural language c
 
 ### System Dependencies
 
-```bash
-# Install ROS 2 packages (replace <distro> with jazzy)
+```bash# Install ROS 2 packages (replace <distro> with jazzy)
 sudo apt update && sudo apt install \
   ros-<distro>-rqt-image-view \
   ros-<distro>-turtlebot4-gz-bringup
+
 
 # Install Ollama
 curl -fsSL https://ollama.ai/install.sh | sh
@@ -31,7 +31,8 @@ pip install requests --break-system-packages
 ### Build Package
 
 ```bash
-cd ~/ros2_jazzy/vision-language-navigator
+# Navigate to your workspace root
+cd /path/to/your/workspace  # Replace with your actual workspace path
 colcon build --packages-select tb4_interfaces tb4_gz_rqt_launch
 source install/setup.bash
 ```
@@ -39,60 +40,25 @@ source install/setup.bash
 ## Usage
 
 ### 1. Launch TurtleBot4 Simulator
-
-```bash
-ros2 launch tb4_gz_rqt_launch tb4_gz_rqt_launch.launch.py
-```
-
-**Notes:**
-- Requires working display (GUI) for `rqt_image_view`
-- Verify camera topic (e.g., `/camera/image_raw`) after spawn
+**Terminal 1: Launch Gazebo**
+ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py
 
 ### 2. Run Interactive Command Parser
 
-**Terminal 1: Start Ollama**
+**Terminal 2: Start Ollama**
+
 ```bash
-ollama serve
+ollama run phi3
 ```
 
-**Terminal 2: Start Command Parser**
+**Terminal 3: Start Command Parser**
 ```bash
-cd ~/ros2_jazzy/vision-language-navigator
+# From your workspace root
+colcon build --packages-select tb4_interfaces tb4_gz_rqt_launch
 source install/setup.bash
-parse_command_node
+ros2 run tb4_gz_rqt_launch parse_command_node
 ```
 
-**Example Session:**
-```
-============================================================
-🤖 INTERACTIVE COMMAND PARSER
-============================================================
-Enter navigation commands (or 'quit' to exit)
-
-🗣️  Command: go to the chair
-[INFO] [command_parser_node]: Processing command: "go to the chair"
-[INFO] [command_parser_node]: ✅ Parsed: target="chair", relation="null", reference="null"
-
-📊 Result:
-{
-  "target": "chair",
-  "relation": null,
-  "reference": null
-}
-
-🗣️  Command: find the table near the window
-[INFO] [command_parser_node]: ✅ Parsed: target="table", relation="near", reference="window"
-
-📊 Result:
-{
-  "target": "table",
-  "relation": "near",
-  "reference": "window"
-}
-
-🗣️  Command: quit
-👋 Goodbye!
-```
 
 ## Command Parser Details
 
@@ -102,23 +68,6 @@ Enter navigation commands (or 'quit' to exit)
 2. **Processing**: Phi-3 LLM extracts structured navigation goal via Ollama API
 3. **Output**: JSON with `target`, `relation`, and `reference` fields
 
-### Test Commands
-
-Try these examples:
-- `go to the chair`
-- `find the table near the window`
-- `navigate to the kitchen`
-- `move to the sofa left of the lamp`
-- `go to bed`
-
-### Performance
-
-- **First request**: ~60-80 seconds (model loading + inference)
-- **Subsequent requests**: ~20-40 seconds (inference only)
-- **Model**: Phi-3 (3.8B parameters, 2.2 GB)
-- **Inference**: GPU-accelerated via Ollama
-
-## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
@@ -127,6 +76,7 @@ Try these examples:
 | `ModuleNotFoundError: requests` | `pip install requests --break-system-packages` |
 | Slow inference (60+ seconds) | Normal for Phi-3 on first request; subsequent requests are faster |
 | `ModuleNotFoundError: tb4_interfaces` | Build interfaces: `colcon build --packages-select tb4_interfaces` |
+| Stop Phi-3 model running in background | `sudo killall ollama` |
 
 ## Documentation
 
