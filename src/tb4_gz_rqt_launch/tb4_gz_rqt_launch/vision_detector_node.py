@@ -3,12 +3,14 @@
 YOLOWorld-based Object Detection Node for TurtleBot4
 Block 1: Basic detector with bounding box visualization
 Block 2: 3D localization with depth camera and TF2 transforms
+Block 3: Nav2 navigation integration
 """
 
 import cv2
 import numpy as np
 import rclpy
 from rclpy.node import Node
+from rclpy.action import ActionClient
 from sensor_msgs.msg import Image, CameraInfo
 from std_msgs.msg import String
 from geometry_msgs.msg import PoseStamped, PointStamped
@@ -20,10 +22,12 @@ import tf2_ros
 from tf2_ros import Buffer, TransformListener
 import tf2_geometry_msgs
 import message_filters
+from nav2_msgs.action import NavigateToPose
+from action_msgs.msg import GoalStatus
 
 
 class VisionDetectorNode(Node):
-    """Real-time object detection using YOLOWorld with 3D localization"""
+    """Real-time object detection using YOLOWorld with 3D localization and Nav2 navigation"""
     
     def __init__(self):
         super().__init__('vision_detector_node')
@@ -37,6 +41,8 @@ class VisionDetectorNode(Node):
         self.declare_parameter('detection_rate_hz', 10.0)
         self.declare_parameter('target_frame', 'map')  # or 'odom'
         self.declare_parameter('camera_frame', 'oakd_rgb_camera_optical_frame')
+        self.declare_parameter('enable_navigation', True)  # Block 3: Enable Nav2
+        self.declare_parameter('approach_distance', 0.8)   # Block 3: Stop distance (m)
         
         model_size = self.get_parameter('model_size').value
         self.conf_threshold = self.get_parameter('conf_threshold').value
@@ -46,6 +52,8 @@ class VisionDetectorNode(Node):
         detection_rate = self.get_parameter('detection_rate_hz').value
         self.target_frame = self.get_parameter('target_frame').value
         self.camera_frame = self.get_parameter('camera_frame').value
+        self.enable_navigation = self.get_parameter('enable_navigation').value
+        self.approach_distance = self.get_parameter('approach_distance').value
         
         self.get_logger().info(f'Loading YOLOWorld model (size: {model_size})...')
         try:
@@ -70,9 +78,23 @@ class VisionDetectorNode(Node):
         self.lock = threading.Lock()
         self.inference_running = False
         
+        # Navigation state (Block 3)
+        self.current_goal_handle = None
+        self.navigation_active = False
+        
         # TF2 setup for coordinate transforms
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
+        
+        # Nav2 Action Client (Block 3)
+        if self.enable_navigation:
+            self.nav_client = ActionClient(
+                self,
+                NavigateToPose,
+                '/navigate_to_pose'
+            )
+            self.get_logger().info('Waiting for Nav2 action server...')
+            threading.Thread(target=self._wait_for_nav2_server, daemon=True).start()
         
         # Subscribe to camera with best effort QoS (important for Gazebo)
         qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, depth=1)
@@ -123,7 +145,7 @@ class VisionDetectorNode(Node):
         detection_period = 1.0 / detection_rate
         self.timer = self.create_timer(detection_period, self.detect_objects)
         
-        self.get_logger().info(f'Vision Detector initialized (Block 2: 3D Localization)')
+        self.get_logger().info(f'Vision Detector initialized (Block 3: Nav2 Integration)')
         self.get_logger().info(f'Subscribing to RGB: {camera_topic}')
         self.get_logger().info(f'Subscribing to Depth: {depth_topic}')
         self.get_logger().info(f'Subscribing to CameraInfo: {camera_info_topic}')
@@ -132,6 +154,20 @@ class VisionDetectorNode(Node):
         self.get_logger().info(f'Listening for target on: /detection_target')
         self.get_logger().info(f'Detection rate: {detection_rate} Hz')
         self.get_logger().info(f'Target frame: {self.target_frame}')
+        self.get_logger().info(f'Navigation enabled: {self.enable_navigation}')
+        if self.enable_navigation:
+            self.get_logger().info(f'Approach distance: {self.approach_distance}m')
+        self.get_logger().info(f'Navigation enabled: {self.enable_navigation}')
+        if self.enable_navigation:
+            self.get_logger().info(f'Approach distance: {self.approach_distance}m')
+    
+    def _wait_for_nav2_server(self):
+        """Wait for Nav2 server in background thread"""
+        if self.nav_client.wait_for_server(timeout_sec=5.0):
+            self.get_logger().info('✅ Nav2 action server ready!')
+        else:
+            self.get_logger().warn('⚠️  Nav2 action server not available. Navigation disabled.')
+            self.enable_navigation = False
     
     def rgbd_callback(self, rgb_msg: Image, depth_msg: Image):
         """Store synchronized RGB + Depth frames"""
@@ -348,6 +384,10 @@ class VisionDetectorNode(Node):
                                     f'{point_map.point.y:.2f}, {point_map.point.z:.2f}) '
                                     f'in frame "{point_map.header.frame_id}"'
                                 )
+                                
+                                # Block 3: Send navigation goal
+                                if self.enable_navigation and not self.navigation_active:
+                                    self.send_navigation_goal(pose_msg)
                 
                 # Store detections
                 with self.lock:
@@ -436,12 +476,127 @@ class VisionDetectorNode(Node):
                 2
             )
         
+        # Show navigation status (Block 3)
+        if self.navigation_active:
+            nav_text = 'NAVIGATING...'
+            cv2.putText(
+                annotated,
+                nav_text,
+                (10, status_y + 30),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7,
+                (0, 255, 0),  # Green
+                2
+            )
+        
         return annotated
     
     def get_detected_objects(self):
         """Get currently detected objects (thread-safe)"""
         with self.lock:
             return self.latest_detections.copy()
+    
+    def send_navigation_goal(self, pose_stamped: PoseStamped):
+        """Send navigation goal to Nav2 (Block 3)"""
+        if not self.enable_navigation or self.navigation_active:
+            return
+        
+        # Adjust goal to stop at approach_distance from object
+        try:
+            robot_transform = self.tf_buffer.lookup_transform(
+                self.target_frame,
+                'base_link',
+                rclpy.time.Time(),
+                timeout=rclpy.duration.Duration(seconds=0.5)
+            )
+            
+            robot_x = robot_transform.transform.translation.x
+            robot_y = robot_transform.transform.translation.y
+            object_x = pose_stamped.pose.position.x
+            object_y = pose_stamped.pose.position.y
+            
+            dx = object_x - robot_x
+            dy = object_y - robot_y
+            distance = np.sqrt(dx**2 + dy**2)
+            
+            if distance > self.approach_distance:
+                scale = (distance - self.approach_distance) / distance
+                goal_x = robot_x + dx * scale
+                goal_y = robot_y + dy * scale
+            else:
+                self.get_logger().info(f'Already within {self.approach_distance}m of target')
+                return
+            
+            adjusted_pose = PoseStamped()
+            adjusted_pose.header = pose_stamped.header
+            adjusted_pose.pose.position.x = goal_x
+            adjusted_pose.pose.position.y = goal_y
+            adjusted_pose.pose.position.z = 0.0
+            
+            yaw = np.arctan2(dy, dx)
+            adjusted_pose.pose.orientation.z = np.sin(yaw / 2.0)
+            adjusted_pose.pose.orientation.w = np.cos(yaw / 2.0)
+            
+        except Exception as e:
+            self.get_logger().warn(f'Could not adjust goal: {e}, using original')
+            adjusted_pose = pose_stamped
+        
+        goal_msg = NavigateToPose.Goal()
+        goal_msg.pose = adjusted_pose
+        
+        self.get_logger().info(
+            f'🚀 Sending navigation goal: ({adjusted_pose.pose.position.x:.2f}, '
+            f'{adjusted_pose.pose.position.y:.2f})'
+        )
+        
+        self.navigation_active = True
+        send_goal_future = self.nav_client.send_goal_async(
+            goal_msg,
+            feedback_callback=self.nav_feedback_callback
+        )
+        send_goal_future.add_done_callback(self.nav_goal_response_callback)
+    
+    def nav_goal_response_callback(self, future):
+        """Handle Nav2 goal acceptance/rejection"""
+        goal_handle = future.result()
+        
+        if not goal_handle.accepted:
+            self.get_logger().error('❌ Nav2 rejected goal')
+            self.navigation_active = False
+            return
+        
+        self.get_logger().info('✅ Nav2 accepted goal')
+        self.current_goal_handle = goal_handle
+        
+        result_future = goal_handle.get_result_async()
+        result_future.add_done_callback(self.nav_result_callback)
+    
+    def nav_feedback_callback(self, feedback_msg):
+        """Receive Nav2 navigation feedback"""
+        feedback = feedback_msg.feedback
+        current_pose = feedback.current_pose.pose
+        
+        self.get_logger().info(
+            f'🤖 Navigating... ({current_pose.position.x:.2f}, {current_pose.position.y:.2f})',
+            throttle_duration_sec=3.0
+        )
+    
+    def nav_result_callback(self, future):
+        """Handle Nav2 navigation result"""
+        result = future.result().result
+        status = future.result().status
+        
+        if status == GoalStatus.STATUS_SUCCEEDED:
+            self.get_logger().info('🎉 Navigation succeeded! Reached target object.')
+        elif status == GoalStatus.STATUS_ABORTED:
+            self.get_logger().error('❌ Navigation aborted')
+        elif status == GoalStatus.STATUS_CANCELED:
+            self.get_logger().warn('⚠️  Navigation canceled')
+        else:
+            self.get_logger().warn(f'Navigation finished with status: {status}')
+        
+        self.navigation_active = False
+        self.current_goal_handle = None
 
 
 def main(args=None):
