@@ -73,7 +73,7 @@ ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py nav2:=true localizatio
 
 **Set the initial spawn point of the robot (critical for AMCL localization)**
 
-After robot has spawned in the world, wait ~5 seconds for all nodes to initialize, then:
+After robot has spawned in the world, wait ~5 seconds for all nodes to initialize, then undock the robot with HMI and:
 
 
 *Using Command Line in another terminal*
@@ -93,16 +93,6 @@ ros2 topic pub --once /initialpose geometry_msgs/msg/PoseWithCovarianceStamped "
                  0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891909122467]
   }
 }"
-```
-
-*Option C: Automatic Initial Pose (after rebuild)*
-```bash
-ros2 run tb4_gz_rqt_launch set_initial_pose_node
-```
-
-**Undock the robot** (if motion control warnings appear):
-```bash
-ros2 action send_goal /undock irobot_create_msgs/action/Undock "{}"
 ```
 
 ### 2. Run Interactive Command Parser
