@@ -39,9 +39,16 @@ source install/setup.bash
 
 ## Usage
 
-### 1. Launch TurtleBot4 Simulator
-**Terminal 1: Launch Gazebo**
-ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py 
+### 1. Launch TurtleBot4 Simulator with Nav2
+**Terminal 1: Launch Gazebo with Nav2 and Localization**
+```bash
+ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py nav2:=true localization:=true
+```
+
+**Alternative: Without localization (uses `odom` frame)**
+```bash
+ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py nav2:=true
+``` 
 
 ### 2. Run Interactive Command Parser
 
@@ -53,7 +60,12 @@ source install/setup.bash
 ros2 run tb4_gz_rqt_launch parse_command_node
 ```
 **Terminal 3: Run Object Detection Node**
+```bash
 ros2 run tb4_gz_rqt_launch vision_detector_node
+
+# If not using localization, use odom frame:
+# ros2 run tb4_gz_rqt_launch vision_detector_node --ros-args -p target_frame:=odom
+```
 
 **Terminal 4: Visualize Object Detection in Live Camera Feed**
  ros2 run rqt_image_view rqt_image_view /vision/detections
@@ -75,6 +87,7 @@ ros2 run tb4_gz_rqt_launch vision_detector_node
 | Slow inference (60+ seconds) | Normal for Phi-3 on first request; subsequent requests are faster |
 | `ModuleNotFoundError: tb4_interfaces` | Build interfaces: `colcon build --packages-select tb4_interfaces` |
 | Stop Phi-3 model running in background | `sudo killall ollama` |
+| `TF2 transform failed: "map" does not exist` | Launch with localization: `nav2:=true localization:=true` OR use odom frame: `-p target_frame:=odom` |
 
 ## Documentation
 

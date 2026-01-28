@@ -20,6 +20,7 @@ setup(
             'parse_command_node = tb4_gz_rqt_launch.command_parser_node:main',
             'vision_detector_node = tb4_gz_rqt_launch.vision_detector_node:main',
             'test_vision_detector = tb4_gz_rqt_launch.test_vision_detector:main',
+            'set_initial_pose_node = tb4_gz_rqt_launch.set_initial_pose_node:main',
         ],
     },
     zip_safe=False,
