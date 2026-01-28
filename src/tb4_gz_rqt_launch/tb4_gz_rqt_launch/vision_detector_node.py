@@ -43,6 +43,10 @@ class VisionDetectorNode(Node):
         self.declare_parameter('camera_frame', 'oakd_rgb_camera_optical_frame')
         self.declare_parameter('enable_navigation', True)  # Block 3: Enable Nav2
         self.declare_parameter('approach_distance', 0.8)   # Block 3: Stop distance (m)
+        self.declare_parameter('max_detection_distance', 20.0)  # Maximum depth detection range (m)
+        # Font configuration parameters
+        self.declare_parameter('font_scale', 0.8)  # Font size multiplier (0.5-2.0 typical range)
+        self.declare_parameter('font_thickness', 2)  # Font thickness in pixels (1-4 typical)
         
         model_size = self.get_parameter('model_size').value
         self.conf_threshold = self.get_parameter('conf_threshold').value
@@ -54,6 +58,9 @@ class VisionDetectorNode(Node):
         self.camera_frame = self.get_parameter('camera_frame').value
         self.enable_navigation = self.get_parameter('enable_navigation').value
         self.approach_distance = self.get_parameter('approach_distance').value
+        self.max_detection_distance = self.get_parameter('max_detection_distance').value
+        self.font_scale = self.get_parameter('font_scale').value
+        self.font_thickness = self.get_parameter('font_thickness').value
         
         self.get_logger().info(f'Loading YOLOWorld model (size: {model_size})...')
         try:
@@ -154,9 +161,7 @@ class VisionDetectorNode(Node):
         self.get_logger().info(f'Listening for target on: /detection_target')
         self.get_logger().info(f'Detection rate: {detection_rate} Hz')
         self.get_logger().info(f'Target frame: {self.target_frame}')
-        self.get_logger().info(f'Navigation enabled: {self.enable_navigation}')
-        if self.enable_navigation:
-            self.get_logger().info(f'Approach distance: {self.approach_distance}m')
+        self.get_logger().info(f'Max detection distance: {self.max_detection_distance}m')
         self.get_logger().info(f'Navigation enabled: {self.enable_navigation}')
         if self.enable_navigation:
             self.get_logger().info(f'Approach distance: {self.approach_distance}m')
@@ -210,8 +215,21 @@ class VisionDetectorNode(Node):
             )
     
     def target_callback(self, msg: String):
-        """Update target object to detect"""
+        """Update target object to detect and cancel current navigation"""
         target = msg.data.strip().lower()
+        
+        # Cancel any ongoing navigation when switching targets
+        if self.navigation_active and self.current_goal_handle is not None:
+            self.get_logger().info(f'⚠️  Canceling current navigation to switch to new target: "{target}"')
+            try:
+                cancel_future = self.current_goal_handle.cancel_goal_async()
+                cancel_future.add_done_callback(self.nav_cancel_callback)
+            except Exception as e:
+                self.get_logger().warn(f'Failed to cancel navigation: {e}')
+            
+            self.navigation_active = False
+            self.current_goal_handle = None
+        
         with self.lock:
             self.target_object = target
         self.get_logger().info(f'Target object set to: "{target}"')
@@ -246,8 +264,8 @@ class VisionDetectorNode(Node):
         depth = depth_img[v, u]
         
         # Check for invalid depth
-        if np.isnan(depth) or np.isinf(depth) or depth <= 0.0 or depth > 10.0:
-            self.get_logger().warn(f'Invalid depth at ({u}, {v}): {depth}m')
+        if np.isnan(depth) or np.isinf(depth) or depth <= 0.0 or depth > self.max_detection_distance:
+            self.get_logger().warn(f'Invalid depth at ({u}, {v}): {depth}m (max: {self.max_detection_distance}m)')
             return None
         
         # Apply pinhole camera model
@@ -439,7 +457,7 @@ class VisionDetectorNode(Node):
                 label = f'TARGET: {label}'
             
             (text_w, text_h), _ = cv2.getTextSize(
-                label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2
+                label, cv2.FONT_HERSHEY_COMPLEX, self.font_scale, self.font_thickness
             )
             
             # Background rectangle for text
@@ -456,10 +474,10 @@ class VisionDetectorNode(Node):
                 annotated, 
                 label, 
                 (x1, y1 - 5),
-                cv2.FONT_HERSHEY_SIMPLEX, 
-                0.6, 
+                cv2.FONT_HERSHEY_COMPLEX, 
+                self.font_scale, 
                 (255, 255, 255),  # White text
-                2
+                self.font_thickness
             )
         
         # Draw status text
@@ -470,10 +488,10 @@ class VisionDetectorNode(Node):
                 annotated,
                 status_text,
                 (10, status_y),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.7,
+                cv2.FONT_HERSHEY_COMPLEX,
+                self.font_scale,
                 (0, 255, 255),  # Yellow
-                2
+                self.font_thickness
             )
         
         # Show navigation status (Block 3)
@@ -483,10 +501,10 @@ class VisionDetectorNode(Node):
                 annotated,
                 nav_text,
                 (10, status_y + 30),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.7,
+                cv2.FONT_HERSHEY_COMPLEX,
+                self.font_scale,
                 (0, 255, 0),  # Green
-                2
+                self.font_thickness
             )
         
         return annotated
@@ -597,6 +615,17 @@ class VisionDetectorNode(Node):
         
         self.navigation_active = False
         self.current_goal_handle = None
+    
+    def nav_cancel_callback(self, future):
+        """Handle navigation cancellation response"""
+        try:
+            cancel_response = future.result()
+            if len(cancel_response.goals_canceling) > 0:
+                self.get_logger().info('✅ Navigation goal successfully canceled')
+            else:
+                self.get_logger().warn('⚠️  No goals were canceled (may have already completed)')
+        except Exception as e:
+            self.get_logger().warn(f'Cancel callback error: {e}')
 
 
 def main(args=None):

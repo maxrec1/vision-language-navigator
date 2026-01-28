@@ -9,6 +9,7 @@ from rclpy.node import Node
 from .ollama_test import parse_command
 import logging
 import threading
+import time
 from std_msgs.msg import String
 import sys
 from rcl_interfaces.msg import ParameterValue
@@ -29,12 +30,16 @@ class CommandParserNode(Node):
         
         # Thread control
         self._stop_event = threading.Event()
+        self.get_logger().info('Command Parser Node started - interactive mode active')
+        
+        # Small delay to ensure logger output prints before interactive prompt
+        time.sleep(0.2)
+        
         self._interactive_thread = threading.Thread(
             target=self._interactive_loop, daemon=True
         )
         self._interactive_thread.start()
         
-        self.get_logger().info('Command Parser Node started - interactive mode active')
     
     def _interactive_loop(self):
         """Continuously accept user input, parse it, and publish targets one at a time."""
