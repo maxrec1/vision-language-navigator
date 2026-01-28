@@ -58,7 +58,7 @@ pip install requests --break-system-packages
 
 ```bash
 # Navigate to your workspace root
-cd cd ~/vision-language-navigator  # Replace with your actual workspace path
+cd ~/vision-language-navigator  # Replace with your actual workspace path
 colcon build --packages-select tb4_interfaces tb4_gz_rqt_launch
 source install/setup.bash
 ```
