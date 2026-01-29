@@ -6,7 +6,7 @@ This folder contains visual documentation of the Vision Language Navigator syste
 
 ### TB4 POV Video
 
-https://github.com/user-attachments/assets/vision-navigator-tb4-pov%20(1).mp4
+![Video 2](vision-navigator-tb4-pov%20(1).mp4)
 
 Demonstrates the TurtleBot4 perspective during navigation:
 - **Top screen**: Gazebo simulation showing the robot in the warehouse environment
@@ -14,7 +14,7 @@ Demonstrates the TurtleBot4 perspective during navigation:
 
 ### Command Parser Video
 
-https://github.com/user-attachments/assets/vision-navigator-command-parser.mp4
+![Video 2](vision-navigator-command-parser.mp4)
 
 Shows the natural language command processing system:
 - **Note**: The first query takes longer to process as the system initializes models and loads resources
