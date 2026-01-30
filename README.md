@@ -283,15 +283,11 @@ ros2 topic pub --once /goal_pose geometry_msgs/msg/PoseStamped "{
 }"
 ```
 
-### Verify Robot Spawn Location
-```bash
-ros2 topic echo /odom --once  # Check position (should be ~0, 0)
-```
 
 ## 📚 Documentation
 
-- **[README_COMMAND_PARSER.md](README_COMMAND_PARSER.md)** - Detailed API reference for command parser module
-- **[README_VISION_DETECTOR.md](README_VISION_DETECTOR.md)** - Vision detector implementation details
+- **[README_COMMAND_PARSER.md](src/tb4_gz_rqt_launch/README_COMMAND_PARSER.md)** - Detailed API reference for command parser module
+- **[README_VISION_DETECTOR.md](src/tb4_gz_rqt_launch/README_VISION_DETECTOR.md)** - Vision detector implementation details
 - **[TEST_SERVICE.md](TEST_SERVICE.md)** - Service testing guide
 - **[ollama_test.py](ollama_test.py)** - Standalone test script for Phi-3 JSON extraction
 
@@ -309,9 +305,3 @@ tb4_gz_rqt_launch/
 ├── setup.py
 └── README.md                           # This file
 ```
-
-## See Also
-
-- [Main Project README](../../README.md) - Full project overview
-- [Phase 1 Setup Guide](../../docs/PHASE1_SETUP.md) - Ollama + Phi-3 installation
-
