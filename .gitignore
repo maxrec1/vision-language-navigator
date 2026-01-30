@@ -12,6 +12,8 @@ dist/
 build/
 *.egg-info/
 *.so
+.venv/
+venv/
 
 # Gazebo/ROS sim files
 .gazebo/
