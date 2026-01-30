@@ -17,6 +17,8 @@ An intelligent ROS 2 navigation system that combines natural language processing
 
 [![Navigation Demo](https://img.youtube.com/vi/RtpcLp72Kpg/maxresdefault.jpg)](https://www.youtube.com/watch?v=RtpcLp72Kpg)
 
+[![Navigation Demo 2](https://img.youtube.com/vi/wKa-MS_t2xk/maxresdefault.jpg)](https://www.youtube.com/watch?v=wKa-MS_t2xk).
+
 **Command Parser - Natural Language Processing**
 
 [![Command Parser Demo](https://img.youtube.com/vi/87eV5hfhxLk/maxresdefault.jpg)](https://www.youtube.com/watch?v=87eV5hfhxLk)
