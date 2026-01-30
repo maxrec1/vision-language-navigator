@@ -78,7 +78,13 @@ source install/setup.bash
 ### 1. Launch TurtleBot4 Simulator with Nav2
 **Terminal 1: Launch Gazebo with Nav2 and Localization**
 ```bash
-ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py nav2:=true localization:=true rviz:=true
+ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py \
+  nav2:=true \
+  localization:=true \
+  x:=9.0 \
+  y:=-5.69 \
+  z:=0.01 \
+  yaw:=2.793
 ```
 
 **Set the initial spawn point of the robot (critical for AMCL localization)**
@@ -228,15 +234,11 @@ ros2 topic pub --once /goal_pose geometry_msgs/msg/PoseStamped "{
 }"
 ```
 
-### Verify Robot Spawn Location
-```bash
-ros2 topic echo /odom --once  # Check position (should be ~0, 0)
-```
 
 ## 📚 Documentation
 
-- **[README_COMMAND_PARSER.md](README_COMMAND_PARSER.md)** - Detailed API reference for command parser module
-- **[README_VISION_DETECTOR.md](README_VISION_DETECTOR.md)** - Vision detector implementation details
+- **[README_COMMAND_PARSER.md](src/tb4_gz_rqt_launch/README_COMMAND_PARSER.md)** - Detailed API reference for command parser module
+- **[README_VISION_DETECTOR.md](src/tb4_gz_rqt_launch/README_VISION_DETECTOR.md)** - Vision detector implementation details
 - **[TEST_SERVICE.md](TEST_SERVICE.md)** - Service testing guide
 - **[ollama_test.py](ollama_test.py)** - Standalone test script for Phi-3 JSON extraction
 
@@ -254,9 +256,3 @@ tb4_gz_rqt_launch/
 ├── setup.py
 └── README.md                           # This file
 ```
-
-## See Also
-
-- [Main Project README](../../README.md) - Full project overview
-- [Phase 1 Setup Guide](../../docs/PHASE1_SETUP.md) - Ollama + Phi-3 installation
-
