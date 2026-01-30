@@ -18,6 +18,12 @@ def generate_launch_description():
 
     include_tb4 = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(tb4_launch),
+        launch_arguments={
+            'x': '-7.8',
+            'y': '3',
+            'z': '0.01',
+            'yaw': '3.1416',
+        }.items()
     )
 
     # Start vision detector node

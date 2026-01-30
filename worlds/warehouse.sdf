@@ -227,7 +227,7 @@
         https://fuel.gazebosim.org/1.0/OpenRobotics/models/MiniSofa
       </uri>
       <name>minisofa</name>
-      <pose>13.256 -2.46 0 0 -0 1.32</pose>
+      <pose>13.256 -2.46 0.01 0 -0 1.32</pose>
     </include>
    
     <include>
@@ -235,7 +235,7 @@
         https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sofa
       </uri>
       <name>sofa</name>
-      <pose>13.1 -7.26 0 0 -0 1.55</pose>
+      <pose>13.1 -7.26 0.01 0 -0 1.55</pose>
     </include>
 
     <include>
@@ -243,7 +243,7 @@
         https://fuel.gazebosim.org/1.0/OpenRobotics/models/Suitcase1H
       </uri>
       <name>suitcase</name>
-      <pose>12.9 -5.69 0 0 -0 2.05</pose>
+      <pose>12.9 -5.69 0.01 0 -0 2.05</pose>
     </include>
     
     <include>
@@ -251,7 +251,7 @@
         https://fuel.gazebosim.org/1.0/OpenRobotics/models/SquareShelf
       </uri>
       <name>squareshelf</name>
-      <pose>14.25 -3.1 0 0 -0 1.66</pose>
+      <pose>14.25 -3.1 0.01 0 -0 1.66</pose>
     </include>
 
     <!-- other chairs -->
