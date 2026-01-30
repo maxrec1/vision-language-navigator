@@ -91,7 +91,7 @@ ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py \
 
 **Set the initial spawn point of the robot (critical for AMCL localization)**
 
-After robot has spawned in the world, wait ~5 seconds for all nodes to initialize, then undock the robot with HMI and:
+After robot has spawned in the world, wait ~5 seconds for all nodes to initialize and:
 
 
 *Using Command Line in another terminal*
@@ -112,6 +112,7 @@ ros2 topic pub --once /initialpose geometry_msgs/msg/PoseWithCovarianceStamped "
   }
 }"
 ```
+then undock the robot with HMI or teleop.
 
 ### 2. Run Interactive Command Parser
 
@@ -130,6 +131,13 @@ ros2 run tb4_gz_rqt_launch vision_detector_node
 ```bash
  ros2 run rqt_image_view rqt_image_view /vision/detections
 ```
+
+### 2. Run Interactive Command Parser
+To spawn more models in the gazebo environment run: 
+```bash
+./spawn_missing_models
+```
+
 ## 🔧 System Architecture
 
 ### Component Overview
