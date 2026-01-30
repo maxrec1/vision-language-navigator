@@ -1,0 +1,18 @@
+# Python Dependencies for Vision Language Navigator
+# ROS 2 Jazzy - Python 3.10+
+
+# HTTP client for Ollama API communication
+requests>=2.28.0
+
+# Computer vision library for image processing
+opencv-python>=4.8.0
+
+# YOLO-World object detection model
+ultralytics>=8.0.0
+
+# Numerical computing (required by cv2 and ultralytics)
+numpy>=1.24.0
+
+# Note: ROS 2 Python packages (rclpy, sensor_msgs, cv_bridge, etc.) 
+# are managed via rosdep and should be installed with:
+# rosdep install --from-paths src --ignore-src -r -y

@@ -14,7 +14,13 @@ setup(
         (os.path.join('share', package_name, 'launch'), glob('launch/*launch.py')),
         (os.path.join('share', package_name, 'srv'), glob('srv/*.srv')),
     ],
-    install_requires=['setuptools', 'requests', 'opencv-python', 'ultralytics', 'cv-bridge'],
+    install_requires=[
+        'setuptools',
+        'requests>=2.28.0',
+        'opencv-python>=4.8.0',
+        'ultralytics>=8.0.0',
+        'numpy>=1.24.0',
+    ],
     entry_points={
         'console_scripts': [
             'parse_command_node = tb4_gz_rqt_launch.command_parser_node:main',

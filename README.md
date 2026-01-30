@@ -53,15 +53,33 @@ sudo apt update && sudo apt install \
   ros-jazzy-rqt-image-view \
   ros-jazzy-turtlebot4-gz-bringup
 
-
 # Install Ollama
 curl -fsSL https://ollama.ai/install.sh | sh
 
 # Pull Phi-3 model
 ollama pull phi3
+```
 
-# Install Python dependencies
-pip install requests --break-system-packages
+### Python Virtual Environment Setup
+
+```bash
+# Navigate to workspace root
+cd ~/vision-language-navigator  # Replace with your actual workspace path
+
+# Create virtual environment
+python3 -m venv .venv
+
+# Activate virtual environment
+source .venv/bin/activate
+
+# Install Python dependencies from requirements.txt
+pip install -r requirements.txt
+```
+
+**Important:** You must activate the virtual environment in every new terminal session before running ROS 2 nodes:
+```bash
+source .venv/bin/activate  # Activate venv first
+source install/setup.bash  # Then source ROS 2 workspace
 ```
 
 ### Build Package
@@ -69,7 +87,14 @@ pip install requests --break-system-packages
 ```bash
 # Navigate to your workspace root
 cd ~/vision-language-navigator  # Replace with your actual workspace path
+
+# Activate virtual environment (if not already activated)
+source .venv/bin/activate
+
+# Build ROS 2 packages
 colcon build --packages-select tb4_interfaces tb4_gz_rqt_launch
+
+# Source the workspace
 source install/setup.bash
 ```
 
@@ -78,7 +103,14 @@ source install/setup.bash
 ### 1. Launch TurtleBot4 Simulator with Nav2
 **Terminal 1: Launch Gazebo with Nav2 and Localization**
 ```bash
-ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py nav2:=true localization:=true rviz:=true
+# No venv needed - this is a pure ROS 2 launch
+ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py \
+  nav2:=true \
+  localization:=true \
+  x:=9.0 \
+  y:=-5.69 \
+  z:=0.01 \
+  yaw:=2.793
 ```
 
 **Set the initial spawn point of the robot (critical for AMCL localization)**
@@ -109,18 +141,36 @@ ros2 topic pub --once /initialpose geometry_msgs/msg/PoseWithCovarianceStamped "
 
 **Terminal 2: Start Command Parser - Send target**
 ```bash
-# From your workspace root
-colcon build --packages-select tb4_interfaces tb4_gz_rqt_launch
+# Navigate to workspace root
+cd ~/vision-language-navigator
+
+# Activate virtual environment
+source .venv/bin/activate
+
+# Source ROS 2 workspace
 source install/setup.bash
+
+# Run command parser node
 ros2 run tb4_gz_rqt_launch parse_command_node
 ```
 **Terminal 3: Run Object Detection Node**
 ```bash
+# Navigate to workspace root
+cd ~/vision-language-navigator
+
+# Activate virtual environment
+source .venv/bin/activate
+
+# Source ROS 2 workspace
+source install/setup.bash
+
+# Run vision detector node
 ros2 run tb4_gz_rqt_launch vision_detector_node
 ```
 **Terminal 4: Visualize Object Detection in Live Camera Feed**
 ```bash
- ros2 run rqt_image_view rqt_image_view /vision/detections
+# No venv needed - rqt_image_view is a ROS 2 tool
+ros2 run rqt_image_view rqt_image_view /vision/detections
 ```
 ## 🔧 System Architecture
 
@@ -167,9 +217,14 @@ ros2 run tb4_gz_rqt_launch vision_detector_node
 |-------|----------|
 | **Build & Dependencies** |
 | `No executable found: parse_command_node` | Rebuild: `colcon build --packages-select tb4_gz_rqt_launch && source install/setup.bash` |
-| `ModuleNotFoundError: requests` | `pip install requests --break-system-packages` |
+| `ModuleNotFoundError: requests` | Activate venv: `source .venv/bin/activate`, then verify install: `pip list \| grep requests` |
 | `ModuleNotFoundError: tb4_interfaces` | Build interfaces first: `colcon build --packages-select tb4_interfaces` |
-| `ModuleNotFoundError: ultralytics` | `pip install ultralytics --break-system-packages` |
+| `ModuleNotFoundError: ultralytics` | Activate venv: `source .venv/bin/activate`, then: `pip install -r requirements.txt` |
+| **Virtual Environment** |
+| Venv not activated | Always activate before running nodes: `source .venv/bin/activate` |
+| `command not found: python3` | Install Python 3.10+: `sudo apt install python3 python3-venv python3-pip` |
+| ROS commands not working after venv activation | Source workspace after venv: `source .venv/bin/activate && source install/setup.bash` |
+| Pip packages installed but still getting ImportError | Check you're using venv's Python: `which python3` should show `.venv/bin/python3` |
 | **Ollama & LLM** |
 | `Connection refused` (Ollama) | Start Ollama: `ollama serve` (in separate terminal) |
 | Slow inference (60+ seconds) | Normal for Phi-3 on first request; caches improve subsequent requests |

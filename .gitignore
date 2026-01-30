@@ -13,6 +13,11 @@ build/
 *.egg-info/
 *.so
 
+# Virtual environment
+.venv/
+venv/
+env/
+
 # Gazebo/ROS sim files
 .gazebo/
 .ros/
